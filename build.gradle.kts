@@ -1,7 +1,7 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.3.6"
-	id("io.spring.dependency-management") version "1.1.5"
+	id("org.springframework.boot") version "3.4.1"
+	id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "com.vaatu.bots"
@@ -25,9 +25,8 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
-	implementation("net.dv8tion:JDA:5.3.1")
+	implementation("net.dv8tion:JDA:5.5.0")
 	implementation("dev.arbjerg:lavaplayer:2.2.3")
-	implementation("dev.lavalink.youtube:v2:1.12.0")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	annotationProcessor("org.projectlombok:lombok")

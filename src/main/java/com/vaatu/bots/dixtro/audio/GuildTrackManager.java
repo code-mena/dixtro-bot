@@ -5,7 +5,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import dev.lavalink.youtube.YoutubeAudioSourceManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
@@ -38,8 +37,6 @@ public class GuildTrackManager {
         this.guild = guild;
         this.queue = new LinkedBlockingQueue<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
-        YoutubeAudioSourceManager audioSourceManager = new YoutubeAudioSourceManager(true);
-        this.audioPlayerManager.registerSourceManager(audioSourceManager);
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager);
         this.audioPlayer = this.audioPlayerManager.createPlayer();
         this.trackScheduler = new TrackScheduler(this);
