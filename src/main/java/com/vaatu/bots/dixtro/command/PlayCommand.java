@@ -56,7 +56,8 @@ public class PlayCommand implements ISlashCommand, IOptionsCommand {
             AudioChannelUnion channel = getUserVoiceChannel(interaction);
             AudioManager guildAudioManager = Objects.requireNonNull(guild).getAudioManager();
 
-            GuildTrackManager guildTrackManager = trackService.createAudioManager(guild, interaction.getChannel(), channel);
+            GuildTrackManager guildTrackManager = trackService.createAudioManager(guild, interaction.getChannel(),
+                    channel);
             guildAudioManager.setSendingHandler(guildTrackManager.getAudioPlayerSendHandler());
 
             playTrack(guildTrackManager, interaction);

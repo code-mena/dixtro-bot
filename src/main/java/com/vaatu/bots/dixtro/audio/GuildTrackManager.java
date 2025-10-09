@@ -26,6 +26,7 @@ public class GuildTrackManager {
     private final AudioPlayerManager audioPlayerManager;
     private final LoadResultHandler loadResultHandler;
     private final BlockingQueue<AudioTrack> queue;
+    private final BlockingQueue<String> requestedByQueue;
     private final AudioChannelUnion voiceChannel;
     private final MessageChannelUnion channelUnion;
     private final TrackScheduler trackScheduler;
@@ -37,6 +38,7 @@ public class GuildTrackManager {
         this.voiceChannel = voiceChannel;
         this.guild = guild;
         this.queue = new LinkedBlockingQueue<>();
+        this.requestedByQueue = new LinkedBlockingQueue<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
         YoutubeAudioSourceManager audioSourceManager = new YoutubeAudioSourceManager(true);
         this.audioPlayerManager.registerSourceManager(audioSourceManager);
