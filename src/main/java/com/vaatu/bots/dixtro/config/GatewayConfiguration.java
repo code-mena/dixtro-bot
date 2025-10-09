@@ -54,7 +54,7 @@ public class GatewayConfiguration {
         bot.updateCommands().addCommands(transformCommands(commands)).queue();
 
         Presence botPresence = bot.getPresence();
-        botPresence.setPresence(OnlineStatus.IDLE, Activity.customStatus("Sealed away"));
+        botPresence.setPresence(OnlineStatus.IDLE, Activity.customStatus("..."));
 
         bot.addEventListener((Object[]) adapters);
         return bot;

@@ -29,6 +29,7 @@ public class EmbedFactory {
         newEmbed.setTitle("💿 " + trackInfo.title);
         newEmbed.setAuthor("🖋️ Author: " + trackInfo.author);
         newEmbed.addField("🎵 Video Length:", getVideoLength(trackInfo.length), false);
+        newEmbed.addField("By:", "", true);
         newEmbed.setImage(trackInfo.artworkUrl);
         newEmbed.setColor(Color.ORANGE);
         return newEmbed.build();
