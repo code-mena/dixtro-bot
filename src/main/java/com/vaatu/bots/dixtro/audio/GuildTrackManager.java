@@ -24,21 +24,19 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class GuildTrackManager {
     private final AudioPlayerSendHandler audioPlayerSendHandler;
     private final AudioPlayerManager audioPlayerManager;
-    private final LoadResultHandler loadResultHandler;
-    private final BlockingQueue<AudioTrack> queue;
-    private final BlockingQueue<String> requestedByQueue;
+    private final BlockingQueue<QueuedTrack> queue;
     private final AudioChannelUnion voiceChannel;
     private final MessageChannelUnion channelUnion;
     private final TrackScheduler trackScheduler;
     private final AudioPlayer audioPlayer;
     private final Guild guild;
+    private QueuedTrack currentlyPlaying;
 
     public GuildTrackManager(Guild guild, MessageChannelUnion messageChannelUnion, AudioChannelUnion voiceChannel) {
         this.channelUnion = messageChannelUnion;
         this.voiceChannel = voiceChannel;
         this.guild = guild;
         this.queue = new LinkedBlockingQueue<>();
-        this.requestedByQueue = new LinkedBlockingQueue<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
         YoutubeAudioSourceManager audioSourceManager = new YoutubeAudioSourceManager(true);
         this.audioPlayerManager.registerSourceManager(audioSourceManager);
@@ -47,7 +45,6 @@ public class GuildTrackManager {
         this.trackScheduler = new TrackScheduler(this);
         this.audioPlayer.addListener(this.trackScheduler);
         this.audioPlayerSendHandler = new AudioPlayerSendHandler(this.audioPlayer);
-        this.loadResultHandler = new LoadResultHandler(this);
     }
 
     private boolean isSourceURL(String source) {
@@ -97,22 +94,49 @@ public class GuildTrackManager {
     }
 
     public void skipTrack() {
-        AudioTrack nextTrack = queue.poll();
-        if (nextTrack != null) {
+        QueuedTrack next = queue.poll();
+        if (next != null) {
             log.info("Skipped song.");
-            this.audioPlayer.startTrack(nextTrack, false);
+            this.currentlyPlaying = next;
+            this.audioPlayer.startTrack(next.getTrack(), false);
         } else {
             log.info("Disconnecting from skip command...");
+            this.currentlyPlaying = null;
             this.audioPlayer.stopTrack();
         }
     }
 
     public void loadTrack(String source) {
+        this.loadTrack(source, "Unknown");
+    }
+
+    public void loadTrack(String source, String requesterName) {
         boolean isURL = this.isSourceURL(source);
+        // Create a new LoadResultHandler that captures the requester name for enqueuing
+        LoadResultHandler handler = new LoadResultHandler(this, requesterName);
         if (isURL) {
-            this.audioPlayerManager.loadItem(source, this.loadResultHandler);
+            this.audioPlayerManager.loadItem(source, handler);
         } else {
-            this.audioPlayerManager.loadItem("ytsearch:" + source, this.loadResultHandler);
+            this.audioPlayerManager.loadItem("ytsearch:" + source, handler);
         }
+    }
+
+    public BlockingQueue<QueuedTrack> getQueue() {
+        return queue;
+    }
+
+    public String getCurrentTrackAddedBy() {
+        if (currentlyPlaying != null) {
+            return currentlyPlaying.getAddedBy();
+        }
+        return "Unknown";
+    }
+
+    public void setCurrentlyPlaying(QueuedTrack queuedTrack) {
+        this.currentlyPlaying = queuedTrack;
+    }
+
+    public QueuedTrack getCurrentlyPlaying() {
+        return currentlyPlaying;
     }
 }
