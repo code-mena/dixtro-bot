@@ -9,24 +9,29 @@ import com.vaatu.bots.dixtro.embed.EmbedFactory;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
-import java.util.Optional;
-
 @RequiredArgsConstructor
 public class TrackScheduler extends AudioEventAdapter {
     private final GuildTrackManager trackManager;
 
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
-        MessageEmbed embed = EmbedFactory.createSongEmbed(track.getInfo());
+        String addedBy = trackManager.getCurrentlyPlaying() != null 
+            ? trackManager.getCurrentlyPlaying().getAddedBy() 
+            : "Unknown";
+        MessageEmbed embed = EmbedFactory.createSongEmbed(track.getInfo(), addedBy);
         trackManager.announceInChannel(embed);
     }
 
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-        Optional<AudioTrack> nextTrack = Optional.ofNullable(trackManager.getQueue().poll());
-        if (nextTrack.isPresent() && (endReason.mayStartNext)) {
-            player.startTrack(nextTrack.get(), false);
-        } else if (nextTrack.isEmpty() & trackManager.trackIsEmpty()) {
+        com.vaatu.bots.dixtro.audio.QueuedTrack next = trackManager.getQueue().poll();
+        if (next != null && (endReason.mayStartNext)) {
+            trackManager.setCurrentlyPlaying(next);
+            player.startTrack(next.getTrack(), false);
+            // announce will be handled in onTrackStart when the player actually starts the
+            // track
+        } else if (next == null & trackManager.trackIsEmpty()) {
+            trackManager.setCurrentlyPlaying(null);
             MessageEmbed embed = EmbedFactory.createDefault("🥳 Finished tracks");
             trackManager.announceInChannel(embed);
             trackManager.disconnectVoiceManager();

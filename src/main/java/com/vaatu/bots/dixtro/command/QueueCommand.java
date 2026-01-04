@@ -1,6 +1,7 @@
 package com.vaatu.bots.dixtro.command;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.vaatu.bots.dixtro.audio.QueuedTrack;
 import com.vaatu.bots.dixtro.audio.GuildTrackManager;
 import com.vaatu.bots.dixtro.embed.EmbedFactory;
 import com.vaatu.bots.dixtro.exception.BotNotInVoiceException;
@@ -31,10 +32,14 @@ public class QueueCommand implements ISlashCommand {
             Guild guild = Objects.requireNonNull(interaction.getGuild());
             Member member = interaction.getMember();
             GuildTrackManager trackManager = trackService.getAudioManager(guild.getId(), member);
-            List<AudioTrack> trackList = new ArrayList<>(trackManager.getQueue());
-            trackList.addFirst(trackManager.getAudioPlayer().getPlayingTrack());
+            List<QueuedTrack> queued = new java.util.ArrayList<>(trackManager.getQueue());
+            // include currently playing track with correct addedBy info
+            QueuedTrack currentlyPlaying = trackManager.getCurrentlyPlaying();
+            if (currentlyPlaying != null) {
+                queued.add(0, currentlyPlaying);
+            }
 
-            MessageEmbed embed = EmbedFactory.createQueueEmbed(trackList);
+            MessageEmbed embed = EmbedFactory.createQueueEmbed(queued);
             interaction.getHook().sendMessageEmbeds(embed).queue();
         } catch (NoSuchElementException ex) {
             throw new BotNotInVoiceException();

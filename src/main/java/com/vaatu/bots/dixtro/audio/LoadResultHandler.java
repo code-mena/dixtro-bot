@@ -7,16 +7,20 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.vaatu.bots.dixtro.embed.EmbedFactory;
 import com.vaatu.bots.dixtro.message.FailedToLoadMessage;
 import com.vaatu.bots.dixtro.message.NotFoundMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 public class LoadResultHandler implements AudioLoadResultHandler {
     private final GuildTrackManager trackManager;
+    private final String requesterName;
+
+    public LoadResultHandler(GuildTrackManager trackManager, String requesterName) {
+        this.trackManager = trackManager;
+        this.requesterName = requesterName != null ? requesterName : "Unknown";
+    }
 
     private void connectToVoice() {
         if (!this.trackManager.isVoiceConnected()) {
@@ -28,8 +32,13 @@ public class LoadResultHandler implements AudioLoadResultHandler {
     public void trackLoaded(AudioTrack audioTrack) {
         connectToVoice();
         log.info("Song: {} Loaded", audioTrack.getInfo().title);
+        QueuedTrack queuedTrack = new QueuedTrack(audioTrack, requesterName);
+        // Set as currently playing BEFORE starting to ensure onTrackStart has the info
+        trackManager.setCurrentlyPlaying(queuedTrack);
         if (!trackManager.getAudioPlayer().startTrack(audioTrack, true)) {
-            trackManager.getQueue().add(audioTrack);
+            // Track didn't start, add to queue instead
+            trackManager.setCurrentlyPlaying(null);
+            trackManager.getQueue().add(queuedTrack);
         }
     }
 
@@ -43,11 +52,17 @@ public class LoadResultHandler implements AudioLoadResultHandler {
             trackLoaded(starterTrack);
         } else {
             trackManager.announceInChannel("🗒️ Loading playlist: " + (tracks.size() + 1) + " Songs 😎");
+            QueuedTrack starterQueuedTrack = new QueuedTrack(starterTrack, requesterName);
+            // Set as currently playing BEFORE starting
+            trackManager.setCurrentlyPlaying(starterQueuedTrack);
             if (!trackManager.getAudioPlayer().startTrack(starterTrack, true)) {
-                tracks.add(starterTrack);
-                trackManager.getQueue().addAll(tracks);
-            } else {
-                trackManager.getQueue().addAll(tracks);
+                // Track didn't start, add all to queue
+                trackManager.setCurrentlyPlaying(null);
+                tracks.add(0, starterTrack);
+            }
+
+            for (AudioTrack t : tracks) {
+                trackManager.getQueue().add(new QueuedTrack(t, requesterName));
             }
         }
     }

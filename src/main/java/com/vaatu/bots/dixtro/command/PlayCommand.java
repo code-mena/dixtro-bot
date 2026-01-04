@@ -42,7 +42,8 @@ public class PlayCommand implements ISlashCommand, IOptionsCommand {
 
     private void playTrack(GuildTrackManager audioManager, SlashCommandInteraction interaction) {
         String source = getSource(interaction);
-        audioManager.loadTrack(source);
+        String requesterName = Objects.requireNonNull(interaction.getMember()).getEffectiveName();
+        audioManager.loadTrack(source, requesterName);
     }
 
     private AudioChannelUnion getUserVoiceChannel(SlashCommandInteraction interaction) {
