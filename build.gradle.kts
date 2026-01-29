@@ -27,7 +27,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("net.dv8tion:JDA:5.6.1")
 	implementation("dev.arbjerg:lavaplayer:2.2.6")
-	implementation("dev.lavalink.youtube:v2:1.16.0")
+	implementation("dev.lavalink.youtube:v2:1.17.0")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	annotationProcessor("org.projectlombok:lombok")
